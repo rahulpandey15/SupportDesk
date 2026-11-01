@@ -22,5 +22,6 @@ app.UseHttpsRedirection();
 
 app.MapChatEndpoints();
 
+
 app.Run();
 
