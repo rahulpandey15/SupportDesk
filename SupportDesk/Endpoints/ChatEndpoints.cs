@@ -6,31 +6,33 @@ using SupportDesk.Tools;
 
 namespace SupportDesk.Endpoints
 {
-    public sealed record ChatRequest(string message, string? conversationId = null);
-    public static class ChatEndpoints
-    {
+	public sealed record ChatRequest(string message, string? conversationId = null);
+	public static class ChatEndpoints
+	{
 
-        public static IEndpointRouteBuilder MapChatEndpoints(
-            this IEndpointRouteBuilder app,
-            OrderTools orderTools)
-        {
-            var group = app.MapGroup("/api/agents");
+		public static IEndpointRouteBuilder MapChatEndpoints(
+			this IEndpointRouteBuilder app)
+		{
+			var group = app.MapGroup("/api/agents");
 
-            group.MapPost("/chat", async Task<IResult> (
-                ChatRequest request) =>
-            {
-                if (string.IsNullOrWhiteSpace(request.message))
-                {
-                    return Results.BadRequest(new
-                    {
-                        error = "Message is required"
-                    });
-                }
+			group.MapPost("/chat", async Task<IResult> (
+				ChatRequest request,
+				HttpContext httpContext) =>
+			{
+				var orderTools = httpContext.RequestServices.GetRequiredService<OrderTools>();
+
+				if (string.IsNullOrWhiteSpace(request.message))
+				{
+					return Results.BadRequest(new
+					{
+						error = "Message is required"
+					});
+				}
 
                 var endpoint = "";
-                var deploymentName = "gpt-5.4-mini";
+				var deploymentName = "gpt-5.4-mini";
 
-        var agentInstructions = """
+				var agentInstructions = """
                                       You are a friendly customer support agent for an online store.
 
                                       Rules:
@@ -41,28 +43,31 @@ namespace SupportDesk.Endpoints
                                       - Keep answers short, polite and specific (order numbers, dates, statuses).
                                       """;
 
-                AIAgent agent = new AIProjectClient(
-                                new Uri(endpoint), 
-                                new AzureCliCredential())
-                    .AsAIAgent(
-                        model: deploymentName,
-                        instructions: agentInstructions,
-                        tools:[
-                                AIFunctionFactory.Create(orderTools.GetOrderDetails),
-                                AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync)
-                        ],
-                        name: "HelloAgent");
+
+				var agentInstructionsNew = "You are a friendly assistant that will help customer questions";
+
+				AIAgent agent = new AIProjectClient(
+								new Uri(endpoint),
+								new AzureCliCredential())
+					.AsAIAgent(
+						model: deploymentName,
+						instructions: agentInstructions,
+						tools: [
+								AIFunctionFactory.Create(orderTools.GetOrderDetails),
+								AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync)
+						],
+						name: "HelloAgent");
 
 
 
-                var repsonse = await agent.RunAsync(request.message);
+				var repsonse = await agent.RunAsync(request.message);
 
 
-                return Results.Ok(repsonse.Text);
-            });
+				return Results.Ok(repsonse.Text);
+			});
 
-            return app;
-        }
+			return app;
+		}
 
-    }
+	}
 }

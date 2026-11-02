@@ -38,12 +38,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseMiddleware<CustomerContextMiddleware>();
 
-using (var scope = app.Services.CreateScope())
-{
-    var orderTools = scope.ServiceProvider.GetRequiredService<OrderTools>();
-    app.MapChatEndpoints(orderTools);
-}
-
+app.MapChatEndpoints();
 
 app.Run();
 

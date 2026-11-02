@@ -7,8 +7,6 @@ namespace SupportDesk.Tools;
 
 public sealed record OrderSummary(string OrderId, DateTimeOffset PlacedAt, string Status, decimal Total, int ItemCount);
 
-
-
 public sealed class OrderTools(IOrderStore orderStore, ICustomerContext customer)
 {
     
@@ -17,7 +15,10 @@ public sealed class OrderTools(IOrderStore orderStore, ICustomerContext customer
         [Description("How many orders to return, between 1 and 10.")] int count, 
         CancellationToken ct)
     {
-        var orders = await orderStore.GetRecentOrderByCustomerAsync(customer.GetCustomerId(), count, ct);
+		if (count is < 1 or > 10)
+			throw new ArgumentOutOfRangeException(nameof(count));
+
+		var orders = await orderStore.GetRecentOrderByCustomerAsync(customer.GetCustomerId(), count, ct);
 
         return orders.Select(x => new OrderSummary(
             x.OrderId.ToString(),
