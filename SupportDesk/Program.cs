@@ -1,9 +1,26 @@
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using SupportDesk.Data;
+using SupportDesk.Data.Store;
 using SupportDesk.Endpoints;
+using SupportDesk.Http;
+using SupportDesk.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddDbContext<SupportDeskDbContext>(
+    options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHttpContextAccessor();  
+
+
+builder.Services.AddScoped<OrderTools>();
+builder.Services.AddScoped<IOrderStore,OrderStore>();
+builder.Services.AddScoped<ICustomerContext,CustomerContext>(); 
+
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
@@ -19,6 +36,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<CustomerContextMiddleware>();
 
 app.MapChatEndpoints();
 
