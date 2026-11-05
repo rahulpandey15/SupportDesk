@@ -2,6 +2,7 @@
 using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using SupportDesk.Models;
 using SupportDesk.Tools;
 
 namespace SupportDesk.Endpoints
@@ -29,41 +30,39 @@ namespace SupportDesk.Endpoints
 					});
 				}
 
-                var endpoint = "";
+                var endpoint = Environment.GetEnvironmentVariable("FOUNDRY_ENDPOINT");
 				var deploymentName = "gpt-5.4-mini";
 
-				var agentInstructions = """
-                                      You are a friendly customer support agent for an online store.
+                var agentInstructions = """
+                      You are a friendly customer support agent for an online store.
 
-                                      Rules:
-                                      - Answer questions about the signed-in customer's orders using ONLY the tools provided.
-                                      - Never guess order details. If the tools return nothing, say you could not find it.
-                                      - You can only see the current customer's orders. Never discuss other customers.
-                                      - You cannot issue refunds. If asked, explain the policy briefly and offer to hand off to a human.
-                                      - Keep answers short, polite and specific (order numbers, dates, statuses).
-                                      """;
+                      Rules:
+                      - Answer questions about the signed-in customer's orders using ONLY the tools provided.
+                      - Never guess order details. If the tools return nothing, say you could not find it.
+                      - You can only see the current customer's orders. Never discuss other customers.
+                      - You cannot issue refunds. If asked, explain the policy briefly and offer to hand off to a human.
+                      - Keep answers short, polite and specific (order numbers, dates, statuses).
+                      """;
 
-
-				var agentInstructionsNew = "You are a friendly assistant that will help customer questions";
-
-				AIAgent agent = new AIProjectClient(
+                AIAgent agent = new AIProjectClient(
 								new Uri(endpoint),
 								new AzureCliCredential())
 					.AsAIAgent(
 						model: deploymentName,
 						instructions: agentInstructions,
-						tools: [
-								AIFunctionFactory.Create(orderTools.GetOrderDetails),
-								AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync)
-						],
+
+                        tools: [
+							  AIFunctionFactory.Create(orderTools.GetOrderDetails),
+                              AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync)
+                            ],
 						name: "HelloAgent");
 
 
 
-				var repsonse = await agent.RunAsync(request.message);
+				var repsonse = await agent.RunAsync<List<OrderAgentResponse>>(request.message);
 
 
-				return Results.Ok(repsonse.Text);
+				return Results.Ok(repsonse.Result);
 			});
 
 			return app;

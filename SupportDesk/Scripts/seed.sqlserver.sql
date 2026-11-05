@@ -1,5 +1,19 @@
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+
+-- Reset IDENTITY_INSERT in case this script is being rerun in the same session
+-- after an earlier execution stopped before reaching the corresponding OFF statement.
+IF XACT_STATE() <> 0
+    ROLLBACK TRANSACTION;
+
+SET IDENTITY_INSERT dbo.Customers OFF;
+SET IDENTITY_INSERT dbo.Addresses OFF;
+SET IDENTITY_INSERT dbo.Products OFF;
+SET IDENTITY_INSERT dbo.Orders OFF;
+SET IDENTITY_INSERT dbo.OrderItems OFF;
+SET IDENTITY_INSERT dbo.Shipments OFF;
+SET IDENTITY_INSERT dbo.ShipmentEvents OFF;
+
 BEGIN TRANSACTION;
 
 -- Customers (6)
@@ -115,3 +129,5 @@ INSERT INTO dbo.ShipmentEvents (EventId, ShipmentId, EventTime, Location, Descri
     (22, 8, DATEADD(HOUR, -408, SYSUTCDATETIME()), N'Pune Hub', N'Out for delivery'),
     (23, 8, DATEADD(HOUR, -384, SYSUTCDATETIME()), N'Pune', N'Delivered');
 SET IDENTITY_INSERT dbo.ShipmentEvents OFF;
+
+COMMIT TRANSACTION;
