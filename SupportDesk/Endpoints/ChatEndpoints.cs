@@ -67,13 +67,13 @@ namespace SupportDesk.Endpoints
 							: await agent.CreateSessionAsync(ct);
 
 					var response = await agent.RunAsync<List<OrderAgentResponse>>(request.message,agentSession,cancellationToken:ct);
+					await sessionStore.SaveAsync(key, await agent.SerializeSessionAsync(agentSession, cancellationToken: ct), ct);
 					return new ChatResult<List<OrderAgentResponse>>(response.Result, request.conversationId!);
 				}
 				else
 				{
 					var conversationId = Guid.NewGuid().ToString("N");
 				    var response = await agent.RunAsync<List<OrderAgentResponse>>(request.message);
-
 					return new ChatResult<List<OrderAgentResponse>>(response.Result, conversationId);
 				}
 			});
