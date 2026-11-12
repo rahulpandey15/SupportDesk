@@ -4,6 +4,7 @@ using SupportDesk.Data;
 using SupportDesk.Data.Store;
 using SupportDesk.Endpoints;
 using SupportDesk.Http;
+using SupportDesk.Sessions;
 using SupportDesk.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<OrderTools>();
 builder.Services.AddScoped<IOrderStore,OrderStore>();
 builder.Services.AddScoped<ICustomerContext,CustomerContext>(); 
+builder.Services.AddScoped<ISessionStore,SqlSessionStore>();
 
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

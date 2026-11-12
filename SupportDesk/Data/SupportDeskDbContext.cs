@@ -12,6 +12,7 @@ public class SupportDeskDbContext(DbContextOptions<SupportDeskDbContext> options
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<ShipmentEvent> ShipmentEvents => Set<ShipmentEvent>();
+    public DbSet<AgentSession> AgentSessions => Set<AgentSession>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(SupportDeskDbContext).Assembly);
