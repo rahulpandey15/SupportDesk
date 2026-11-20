@@ -23,10 +23,13 @@ public class OrderStore : IOrderStore
     public async Task<List<Order>> GetRecentOrderByCustomerAsync(
             int customerId, int count, CancellationToken ct)
     {
-        var orders =  await _dbContext.Orders.Where(
-                            x => x.CustomerId == customerId)
-                .OrderByDescending(x => x.OrderDate)
-                .Take(count).ToListAsync(ct);
+        var orders =  await _dbContext.Orders
+                        .Include(x => x.Items)
+                        .ThenInclude(x => x.Product)
+                        .Where(x => x.CustomerId == customerId)
+                        .OrderByDescending(x => x.OrderDate)
+                        .Take(count)
+                        .ToListAsync(ct);
 
 
         return orders;
@@ -34,10 +37,14 @@ public class OrderStore : IOrderStore
 
     public async Task<Order?> GetAsync(int customerId, int orderId, CancellationToken ct)
     {
-        var orders =  await _dbContext.Orders.Where(
+        var orders =  await _dbContext.Orders
+                      .Include(x => x.Items)
+                      .Include(x => x.Shipments)
+                     .Where(
                 x => x.CustomerId == customerId && x.OrderId == orderId)
             .FirstOrDefaultAsync(ct);
         
         return orders;
     }
+
 }

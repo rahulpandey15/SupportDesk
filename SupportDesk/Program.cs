@@ -19,6 +19,10 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<OrderTools>();
 builder.Services.AddScoped<IOrderStore,OrderStore>();
+
+builder.Services.AddScoped<ShipmentTools>();
+builder.Services.AddScoped<IShipmentStore, ShipmentStore>();    
+
 builder.Services.AddScoped<ICustomerContext,CustomerContext>(); 
 builder.Services.AddScoped<ISessionStore,SqlSessionStore>();
 
