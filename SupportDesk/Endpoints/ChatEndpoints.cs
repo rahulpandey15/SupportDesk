@@ -81,7 +81,7 @@ namespace SupportDesk.Endpoints
 				var sessionState = await agent.SerializeSessionAsync(agentSession, cancellationToken: ct);
 				await sessionStore.SaveAsync(key, sessionState, ct);
 
-				return Results.Ok(response.Text);
+				return Results.Ok(new ChatResult<string>(response.Text, conversationId));
 			});
 
 			return app;
