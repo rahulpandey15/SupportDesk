@@ -3,7 +3,6 @@ using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using SupportDesk.Http;
-using SupportDesk.Models;
 using SupportDesk.Sessions;
 using SupportDesk.Tools;
 
@@ -55,8 +54,8 @@ namespace SupportDesk.Endpoints
 
 						tools: [
 							  AIFunctionFactory.Create(orderTools.GetOrderDetails),
-							  AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
-							  AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync)
+							 // AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
+							  //AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync)
 							],
 						name: "HelloAgent");
 

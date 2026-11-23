@@ -1,23 +1,36 @@
 ﻿using SupportDesk.Data.Entities;
+using SupportDesk.Tools;
 
 namespace SupportDesk.Data.Store;
 
 public interface IShipmentStore
 {
-	Task<List<Order>> GetShipmentDetailsByOrderIdAsync(string orderId, CancellationToken ct);
-	Task<List<Order>> GetShipmentDetailsByTrackingNumberAsync(string trackingNumber, CancellationToken ct);
+	Task<ShipmentDetails> GetShipmentDetailsAsync(Order? order, CancellationToken ct);
+	Task<List<Shipment>> GetShipmentDetailsByTrackingNumberAsync(string trackingNumber, CancellationToken ct);
 }
 
 public class ShipmentStore : IShipmentStore
 {
-	public Task<List<Order>> GetShipmentDetailsByOrderIdAsync(
-		string orderId, 
+	public async Task<ShipmentDetails> GetShipmentDetailsAsync(
+		Order? order, 
 		CancellationToken ct)
 	{
-		throw new NotImplementedException();
+		var shipmentDetails = order.Shipments.Select(s => new ShipmentDetails(
+			s.Carrier,
+			s.TrackingNumber,
+			s.ShippedAt.Value,
+			s.EstimatedDelivery.Value,
+			s.Events.Select(e => new ShipmentEvents(
+				e.Description,
+				e.EventTime,
+				e.Location)).ToList()
+		)).FirstOrDefault();
+
+		return await Task.FromResult(shipmentDetails);
+
 	}
 
-	public Task<List<Order>> GetShipmentDetailsByTrackingNumberAsync(
+	public Task<List<Shipment>> GetShipmentDetailsByTrackingNumberAsync(
 		string trackingNumber, 
 		CancellationToken ct)
 	{

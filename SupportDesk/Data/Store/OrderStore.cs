@@ -39,7 +39,7 @@ public class OrderStore : IOrderStore
     {
         var orders =  await _dbContext.Orders
                       .Include(x => x.Items)
-                      .Include(x => x.Shipments)
+                      .ThenInclude(x => x.Product)
                      .Where(
                 x => x.CustomerId == customerId && x.OrderId == orderId)
             .FirstOrDefaultAsync(ct);
