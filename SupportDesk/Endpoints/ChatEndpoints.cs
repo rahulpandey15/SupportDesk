@@ -2,12 +2,15 @@
 using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using SupportDesk.Models;
+using SupportDesk.Http;
+using SupportDesk.Sessions;
 using SupportDesk.Tools;
 
 namespace SupportDesk.Endpoints
 {
 	public sealed record ChatRequest(string message, string? conversationId = null);
+	public sealed record ChatResult<T>(T data, string conversationId);
+
 	public static class ChatEndpoints
 	{
 
@@ -18,22 +21,20 @@ namespace SupportDesk.Endpoints
 
 			group.MapPost("/chat", async Task<IResult> (
 				ChatRequest request,
-				HttpContext httpContext) =>
+				HttpContext httpContext,
+				ICustomerContext customer,
+				ISessionStore sessionStore,
+				CancellationToken ct
+				) =>
 			{
 				var orderTools = httpContext.RequestServices.GetRequiredService<OrderTools>();
+				var shipmentTools = httpContext.RequestServices.GetRequiredService<ShipmentTools>();
 
-				if (string.IsNullOrWhiteSpace(request.message))
-				{
-					return Results.BadRequest(new
-					{
-						error = "Message is required"
-					});
-				}
 
-                var endpoint = Environment.GetEnvironmentVariable("FOUNDRY_ENDPOINT");
+				var endpoint = Environment.GetEnvironmentVariable("FOUNDRY_ENDPOINT");
 				var deploymentName = "gpt-5.4-mini";
 
-                var agentInstructions = """
+				var agentInstructions = """
                       You are a friendly customer support agent for an online store.
 
                       Rules:
@@ -44,25 +45,42 @@ namespace SupportDesk.Endpoints
                       - Keep answers short, polite and specific (order numbers, dates, statuses).
                       """;
 
-                AIAgent agent = new AIProjectClient(
+				AIAgent agent = new AIProjectClient(
 								new Uri(endpoint),
 								new AzureCliCredential())
 					.AsAIAgent(
 						model: deploymentName,
 						instructions: agentInstructions,
 
-                        tools: [
+						tools: [
 							  AIFunctionFactory.Create(orderTools.GetOrderDetails),
-                              AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync)
-                            ],
+							 // AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
+							  //AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync)
+							],
 						name: "HelloAgent");
 
 
+				var conversationId =
+						string.IsNullOrWhiteSpace(request.conversationId)
+										? Guid.NewGuid().ToString("N")
+										: request.conversationId;
 
-				var repsonse = await agent.RunAsync<List<OrderAgentResponse>>(request.message);
+				var key = new SessionKey(customer.GetCustomerId(), conversationId);
+				var saved = await sessionStore.GetAsync(key, ct);
 
+				AgentSession agentSession = saved is { } state
+					? await agent.DeserializeSessionAsync(state, cancellationToken: ct)
+					: await agent.CreateSessionAsync(ct);
 
-				return Results.Ok(repsonse.Result);
+				var response = await agent.RunAsync(
+								request.message,
+								agentSession,
+								cancellationToken: ct);
+
+				var sessionState = await agent.SerializeSessionAsync(agentSession, cancellationToken: ct);
+				await sessionStore.SaveAsync(key, sessionState, ct);
+
+				return Results.Ok(new ChatResult<string>(response.Text, conversationId));
 			});
 
 			return app;

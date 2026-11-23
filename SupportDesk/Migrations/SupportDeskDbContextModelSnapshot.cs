@@ -71,6 +71,40 @@ namespace SupportDesk.Migrations
                     b.ToTable("Addresses", (string)null);
                 });
 
+            modelBuilder.Entity("SupportDesk.Data.Entities.AgentSession", b =>
+                {
+                    b.Property<string>("SessionKey")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AgentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ConversationId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StateJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("SessionKey");
+
+                    b.HasIndex("CustomerId", "AgentName", "ConversationId")
+                        .IsUnique();
+
+                    b.ToTable("AgentSessions");
+                });
+
             modelBuilder.Entity("SupportDesk.Data.Entities.Customer", b =>
                 {
                     b.Property<int>("CustomerId")
@@ -293,6 +327,17 @@ namespace SupportDesk.Migrations
                 {
                     b.HasOne("SupportDesk.Data.Entities.Customer", "Customer")
                         .WithMany("Addresses")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("SupportDesk.Data.Entities.AgentSession", b =>
+                {
+                    b.HasOne("SupportDesk.Data.Entities.Customer", "Customer")
+                        .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
