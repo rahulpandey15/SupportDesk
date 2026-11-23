@@ -1,21 +1,33 @@
-﻿using SupportDesk.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using SupportDesk.Data.Entities;
 using SupportDesk.Tools;
 
 namespace SupportDesk.Data.Store;
 
 public interface IShipmentStore
 {
-	Task<ShipmentDetails> GetShipmentDetailsAsync(Order? order, CancellationToken ct);
+	Task<ShipmentDetails> GetShipmentDetailsAsync(int orderId, CancellationToken ct);
 	Task<List<Shipment>> GetShipmentDetailsByTrackingNumberAsync(string trackingNumber, CancellationToken ct);
 }
 
 public class ShipmentStore : IShipmentStore
 {
+	private readonly SupportDeskDbContext dbContext;
+
+	public ShipmentStore(SupportDeskDbContext dbContext)
+	{
+		this.dbContext = dbContext;
+	}
+
+
 	public async Task<ShipmentDetails> GetShipmentDetailsAsync(
-		Order? order, 
+		int orderId,
 		CancellationToken ct)
 	{
-		var shipmentDetails = order.Shipments.Select(s => new ShipmentDetails(
+		var orders
+			 = await dbContext.Orders.Include(x => x.Shipments).ThenInclude(s => s.Events).FirstOrDefaultAsync(x => x.OrderId == orderId, ct);
+
+		var shipmentDetails = orders.Shipments.Select(s => new ShipmentDetails(
 			s.Carrier,
 			s.TrackingNumber,
 			s.ShippedAt.Value,
@@ -31,7 +43,7 @@ public class ShipmentStore : IShipmentStore
 	}
 
 	public Task<List<Shipment>> GetShipmentDetailsByTrackingNumberAsync(
-		string trackingNumber, 
+		string trackingNumber,
 		CancellationToken ct)
 	{
 		throw new NotImplementedException();

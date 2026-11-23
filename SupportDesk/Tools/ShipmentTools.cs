@@ -18,14 +18,12 @@ public sealed class ShipmentTools(IOrderStore orderStore,IShipmentStore shipment
 	[Description("The numeric order ID (for example, 1042) for the signed-in customer's order.")] int orderId,
 	CancellationToken cancellationToken)
 	{
-		//var order = await orderStore.GetAsync(customer.GetCustomerId(), orderId, cancellationToken);
-		//if (order is null)
-		//	throw new ArgumentException($"Order {orderId} not found for the signed-in customer.");
+		var order = await orderStore.GetAsync(customer.GetCustomerId(), orderId, cancellationToken);
+		if (order is null)
+			throw new ArgumentException($"Order {orderId} not found for the signed-in customer.");
 
-		//var shipmentDetails = await shipmentStore.GetShipmentDetailsAsync(order, cancellationToken);
+		var shipmentDetails = await shipmentStore.GetShipmentDetailsAsync(orderId, cancellationToken);
 
-		//return shipmentDetails!;
-
-		return new ShipmentDetails("","",DateTimeOffset.Now,DateTimeOffset.Now,new List<ShipmentEvents>());
+		return shipmentDetails!;
 	}
 }

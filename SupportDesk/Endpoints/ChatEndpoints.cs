@@ -54,8 +54,8 @@ namespace SupportDesk.Endpoints
 
 						tools: [
 							  AIFunctionFactory.Create(orderTools.GetOrderDetails),
-							 // AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
-							  //AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync)
+							 AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
+							 AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync)
 							],
 						name: "HelloAgent");
 
