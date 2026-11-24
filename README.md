@@ -18,11 +18,17 @@ Alongside the source code, I’m also posting video on my Youtube Channel, the p
 
 3. **Restore dependencies**
    - From the repository root, run:
-	 - `dotnet restore SupportDesk.slnx`
+	 - `dotnet restore SupportDesk.slnx`\
+     
+4. **Database Changes**
+   - From the repository root, run:
+	 - `dotnet ef database update --project SupportDesk`
+     -  
 
 4. **Run the application**
    - Start the API:
 	 - `dotnet run --project SupportDesk/SupportDesk.csproj`
+     -  Run the SQL Script in order to insert Sample Data 
 
 5. **Access API docs in development**
    - Open the OpenAPI/Scalar endpoint exposed by the app when running in Development.
