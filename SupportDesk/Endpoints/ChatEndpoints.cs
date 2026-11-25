@@ -27,14 +27,14 @@ namespace SupportDesk.Endpoints
 				CancellationToken ct
 				) =>
 			{
-				var orderTools = httpContext.RequestServices.GetRequiredService<OrderTools>();
-				var shipmentTools = httpContext.RequestServices.GetRequiredService<ShipmentTools>();
+			var orderTools = httpContext.RequestServices.GetRequiredService<OrderTools>();
+			var shipmentTools = httpContext.RequestServices.GetRequiredService<ShipmentTools>();
 
 
-				var endpoint = Environment.GetEnvironmentVariable("FOUNDRY_ENDPOINT");
-				var deploymentName = "gpt-5.4-mini";
+			var endpoint = Environment.GetEnvironmentVariable("FOUNDRY_ENDPOINT");
+			var deploymentName = "gpt-5.4-mini";
 
-				var agentInstructions = """
+			var agentInstructions = """
                       You are a friendly customer support agent for an online store.
 
                       Rules:
@@ -45,46 +45,64 @@ namespace SupportDesk.Endpoints
                       - Keep answers short, polite and specific (order numbers, dates, statuses).
                       """;
 
-				AIAgent agent = new AIProjectClient(
-								new Uri(endpoint),
-								new AzureCliCredential())
-					.AsAIAgent(
-						model: deploymentName,
-						instructions: agentInstructions,
+			AIAgent agent = new AIProjectClient(
+							new Uri(endpoint),
+							new AzureCliCredential())
+				.AsAIAgent(
+					model: deploymentName,
+					instructions: agentInstructions,
 
-						tools: [
-							  AIFunctionFactory.Create(orderTools.GetOrderDetails),
-							 AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
-							 AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync)
-							],
-						name: "HelloAgent");
+					tools: [
+						  AIFunctionFactory.Create(orderTools.GetOrderDetails),
+							  AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
+							  new ApprovalRequiredAIFunction(
+								  AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync))
+						],
+					name: "HelloAgent");
 
 
-				var conversationId =
-						string.IsNullOrWhiteSpace(request.conversationId)
-										? Guid.NewGuid().ToString("N")
-										: request.conversationId;
+			var conversationId =
+					string.IsNullOrWhiteSpace(request.conversationId)
+									? Guid.NewGuid().ToString("N")
+									: request.conversationId;
 
-				var key = new SessionKey(customer.GetCustomerId(), conversationId);
-				var saved = await sessionStore.GetAsync(key, ct);
+			var key = new SessionKey(customer.GetCustomerId(), conversationId);
+			var saved = await sessionStore.GetAsync(key, ct);
 
-				AgentSession agentSession = saved is { } state
-					? await agent.DeserializeSessionAsync(state, cancellationToken: ct)
-					: await agent.CreateSessionAsync(ct);
+			AgentSession agentSession = saved is { } state
+				? await agent.DeserializeSessionAsync(state, cancellationToken: ct)
+				: await agent.CreateSessionAsync(ct);
 
-				var response = await agent.RunAsync(
-								request.message,
-								agentSession,
-								cancellationToken: ct);
+			var response = await agent.RunAsync(
+							request.message,
+							agentSession,
+							cancellationToken: ct);
 
-				var sessionState = await agent.SerializeSessionAsync(agentSession, cancellationToken: ct);
-				await sessionStore.SaveAsync(key, sessionState, ct);
 
-				return Results.Ok(new ChatResult<string>(response.Text, conversationId));
-			});
+			var toolApprovalRequests = response.Messages
+								.SelectMany(x => x.Contents)
+								.OfType<ToolApprovalRequestContent>()
+								.ToList();
+
+			if (toolApprovalRequests.Any())
+			{
+				var approvalRequest = toolApprovalRequests.First();
+				var toolName = (FunctionCallContent)approvalRequest.ToolCall;
+
+				return Results.Ok(new ChatResult<string>(
+					$"The agent is requesting approval to use the tool '{toolName.Name}'. Please approve or deny this request.",
+					conversationId));
+			};
+
+
+			var sessionState = await agent.SerializeSessionAsync(agentSession, cancellationToken: ct);
+			await sessionStore.SaveAsync(key, sessionState, ct);
+
+			return Results.Ok(new ChatResult<string>(response.Text, conversationId));
+		});
 
 			return app;
 		}
 
-	}
+}
 }

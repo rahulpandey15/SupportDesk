@@ -1,0 +1,86 @@
+@page "/playground"
+@rendermode InteractiveServer
+@using SupportDesk.Playground.Services
+@inject ApiClient ApiClient
+
+<PageTitle>Support Desk Chatbot</PageTitle>
+
+<h1>Support Desk Chatbot</h1>
+
+<div class="playground-form">
+	<label for="promptInput" class="form-label">Ask me anything..</label>
+	<textarea id="promptInput"
+		class="form-control"
+		rows="8"
+		placeholder="Please ask me anything..."
+		@bind="prompt"></textarea>
+</div>
+
+<div class="actions">
+	<button class="btn btn-primary" @onclick="SubmitAsync" disabled="@(!CanSubmit)">Submit</button>
+	<button class="btn btn-outline-secondary" @onclick="Clear" disabled="@isLoading">Clear</button>
+</div>
+
+@if (isLoading)
+{
+	<p class="status">Loading response...</p>
+}
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+	<div class="alert alert-danger" role="alert">
+		@errorMessage
+	</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(responseMessage))
+{
+	<div class="response-section">
+		<h2>Response</h2>
+		<pre>@responseMessage</pre>
+	</div>
+}
+
+@code {
+	private string prompt = string.Empty;
+	private string responseMessage = string.Empty;
+	private string errorMessage = string.Empty;
+	private string? conversationId;
+	private bool isLoading;
+
+	private bool CanSubmit => !isLoading && !string.IsNullOrWhiteSpace(prompt);
+
+	private async Task SubmitAsync()
+	{
+		errorMessage = string.Empty;
+		responseMessage = string.Empty;
+		isLoading = true;
+
+		try
+		{
+			var result = await ApiClient.SendPromptAsync(prompt.Trim(), conversationId, CancellationToken.None);
+			responseMessage = result.data;
+			conversationId = result.conversationId;
+		}
+		catch (ApiClientException ex)
+		{
+			errorMessage = ex.Message;
+		}
+		catch (Exception)
+		{
+			errorMessage = "Something went wrong while calling the API.";
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
+
+	private void Clear()
+	{
+		prompt = string.Empty;
+		responseMessage = string.Empty;
+		errorMessage = string.Empty;
+		conversationId = null;
+	}
+}

@@ -1,0 +1,26 @@
+.playground-form {
+	max-width: 900px;
+}
+
+.actions {
+	display: flex;
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
+
+.status {
+	margin-top: 1rem;
+}
+
+.response-section {
+	margin-top: 1.5rem;
+}
+
+.response-section pre {
+	background-color: #f8f9fa;
+	border: 1px solid #dee2e6;
+	border-radius: 0.375rem;
+	padding: 0.75rem;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
