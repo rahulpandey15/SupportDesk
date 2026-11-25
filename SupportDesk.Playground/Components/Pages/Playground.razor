@@ -1,3 +1,4 @@
+@page "/"
 @page "/playground"
 @rendermode InteractiveServer
 @using SupportDesk.Playground.Services
@@ -8,6 +9,12 @@
 <h1>Support Desk Chatbot</h1>
 
 <div class="playground-form">
+	<label for="clientId" class="form-label">Client Id</label>
+	<InputText id="clientId"
+			  class="form-control"
+			  rows="8"
+			  placeholder="Please enter your client Id..."
+			  @bind-value="clientId"></InputText>
 	<label for="promptInput" class="form-label">Ask me anything..</label>
 	<textarea id="promptInput"
 		class="form-control"
@@ -47,6 +54,7 @@
 	private string errorMessage = string.Empty;
 	private string? conversationId;
 	private bool isLoading;
+	private string clientId = string.Empty;
 
 	private bool CanSubmit => !isLoading && !string.IsNullOrWhiteSpace(prompt);
 
@@ -58,7 +66,7 @@
 
 		try
 		{
-			var result = await ApiClient.SendPromptAsync(prompt.Trim(), conversationId, CancellationToken.None);
+			var result = await ApiClient.SendPromptAsync(prompt.Trim(), Convert.ToInt32(clientId), conversationId, CancellationToken.None);
 			responseMessage = result.data;
 			conversationId = result.conversationId;
 		}

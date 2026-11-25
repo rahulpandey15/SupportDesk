@@ -5,10 +5,10 @@ namespace SupportDesk.Playground.Services;
 
 public sealed class ApiClient(HttpClient httpClient)
 {
-	public async Task<ChatResult<string>> SendPromptAsync(string message, string? conversationId, CancellationToken cancellationToken)
+	public async Task<ChatResult<string>> SendPromptAsync(string message,int customerId, string? conversationId, CancellationToken cancellationToken)
 	{
 		var request = new ChatRequest(message, conversationId);
-
+		httpClient.DefaultRequestHeaders.Add("x-customer-id", customerId.ToString());
 		using var response = await httpClient.PostAsJsonAsync("/api/agents/chat", request, cancellationToken);
 
 		if (response.IsSuccessStatusCode)
