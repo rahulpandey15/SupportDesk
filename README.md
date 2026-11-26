@@ -595,11 +595,7 @@ dotnet restore
 dotnet build
 ```
 
-Run both projects and test the API through Scalar or the chatbot UI. If you add tests, run them by project or solution:
-
-```powershell
-dotnet test
-```
+Run both projects and test the API through Scalar or the chatbot UI.
 
 ## Security notes
 
@@ -621,6 +617,9 @@ dotnet test
 6. Merge the tested session branch into `master`.
 7. Add the final YouTube URL to the branch table above.
 
-## License
 
-No license file is currently included. Add a license if the repository will be reused or distributed publicly.
+Reach out to me via any of the following channels
+1. Discord : https://discord.com/invite/Szs9ypCdRj
+2. Contact Me : [www.devbeyondcode.com/](https://www.devbeyondcode.com/contact/)
+3. LinkedIn : https://www.linkedin.com/in/rahulpandey15/
+
