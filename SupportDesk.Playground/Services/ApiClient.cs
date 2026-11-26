@@ -8,8 +8,13 @@ public sealed class ApiClient(HttpClient httpClient)
 	public async Task<ChatResult<string>> SendPromptAsync(string message,int customerId, string? conversationId, CancellationToken cancellationToken)
 	{
 		var request = new ChatRequest(message, conversationId);
-		httpClient.DefaultRequestHeaders.Add("x-customer-id", customerId.ToString());
-		using var response = await httpClient.PostAsJsonAsync("/api/agents/chat", request, cancellationToken);
+		using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/agents/chat")
+		{
+			Content = JsonContent.Create(request)
+		};
+		httpRequest.Headers.Add("x-customer-id", customerId.ToString());
+
+		using var response = await httpClient.SendAsync(httpRequest, cancellationToken);
 
 		if (response.IsSuccessStatusCode)
 		{

@@ -1,0 +1,23 @@
+@page "/dashboard"
+@rendermode InteractiveServer
+@inject SupportDesk.Playground.Services.UserSession Session
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1>Dashboard</h1>
+
+@if (!Session.IsLoggedIn)
+{
+	<div class="alert alert-warning" role="alert">
+		Please login first to view dashboard.
+	</div>
+	<a class="btn btn-primary" href="/login">Go to Login</a>
+}
+else if (Session.IsAdmin)
+{
+	<AdminDashboard />
+}
+else
+{
+	<UserDashboard />
+}

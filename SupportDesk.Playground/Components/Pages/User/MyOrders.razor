@@ -1,0 +1,16 @@
+@page "/user/my-orders"
+@rendermode InteractiveServer
+@inject SupportDesk.Playground.Services.UserSession Session
+
+<PageTitle>My Orders</PageTitle>
+
+@if (!Session.IsLoggedIn || Session.IsAdmin)
+{
+	<h1>Unauthorized</h1>
+	<p>Only normal users can view this page.</p>
+}
+else
+{
+	<h1>My Orders</h1>
+	<p>This is the user view for orders.</p>
+}

@@ -7,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddScoped<UserSession>();
+
 builder.Services.AddHttpClient<ApiClient>((services, client) =>
 {
     var configuration = services.GetRequiredService<IConfiguration>();

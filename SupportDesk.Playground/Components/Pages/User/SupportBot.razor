@@ -1,0 +1,17 @@
+@page "/user/support-bot"
+@rendermode InteractiveServer
+@inject SupportDesk.Playground.Services.UserSession Session
+
+<PageTitle>Support Bot</PageTitle>
+
+@if (!Session.IsLoggedIn || Session.IsAdmin)
+{
+	<h1>Unauthorized</h1>
+	<p>Only normal users can view this page.</p>
+}
+else
+{
+	<h1>Support Bot</h1>
+	<p>This is the user support bot view.</p>
+	<a class="btn btn-primary" href="/playground">Open Chat</a>
+}

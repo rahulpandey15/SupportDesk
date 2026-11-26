@@ -13,8 +13,9 @@ public class SupportDeskDbContext(DbContextOptions<SupportDeskDbContext> options
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<ShipmentEvent> ShipmentEvents => Set<ShipmentEvent>();
     public DbSet<AgentSession> AgentSessions => Set<AgentSession>();
+	public DbSet<Refund> Refunds => Set<Refund>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder) =>
+	protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(SupportDeskDbContext).Assembly);
 
     // Rules that apply to every property of a type, so each entity does not repeat them.
