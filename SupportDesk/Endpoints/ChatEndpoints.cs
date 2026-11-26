@@ -33,7 +33,7 @@ namespace SupportDesk.Endpoints
 
 				return result is null
 					? Results.NotFound(new { error = $"Unknown agent '{agentName}'." })
-					: Results.Ok(result);
+					: Results.Ok(new ChatResult<string>(result.Reply, result.ConversationId));
 			});
 
 			return app;

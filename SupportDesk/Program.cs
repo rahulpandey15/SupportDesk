@@ -29,7 +29,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton(sp =>
 {
     var options = sp.GetRequiredService<IOptions<FoundryOptions>>().Value;
-    return new AIProjectClient(new Uri(options.ProjectEndpoint), new DefaultAzureCredential());
+    return new AIProjectClient(new Uri(options.ProjectEndpoint), new AzureCliCredential());
 });
 
 // Agent infrastructure

@@ -4,29 +4,27 @@ using SupportDesk.Tools;
 namespace SupportDesk.Agents;
 
 public sealed class SupportAgentDefinition(OrderTools orderTools,
-	ShipmentTools shipmentTools, RefundTools refundTools) : IAgentDefinition
+	ShipmentTools shipmentTools) : IAgentDefinition
 {
 	public string Name => AgentNames.Support;
 
 	public string Description => "Answers customer questions about their recent orders, shipping and returns.";
 
-	public string Instructions => """
-        You are a friendly customer support agent for an online store.
+    public string Instructions => """
+    You are a friendly customer support agent for an online store.
 
-        Rules:
-        - Answer questions about the signed-in customer's orders using ONLY the tools provided.
-        - Never guess order details. If the tools return nothing, say you could not find it.
-        - You can only see the current customer's orders. Never discuss other customers.
-        - Keep answers short, polite and specific (order numbers, dates, statuses).
-        """;
+    Rules:
+    - Answer questions about the signed-in customer's orders using ONLY the tools provided.
+    - Never guess order details. If the tools return no information, politely say you could not find the requested details.
+    - You can access only the current signed-in customer's orders. Never access or discuss other customers' orders.
+    - You are not authorized to process refunds. If a customer requests a refund, respond exactly with: "I cannot process refunds. Refund Tool Development is in progress."
+    - Keep answers short, polite, and specific. Include relevant order numbers, dates, and statuses whenever available.
+    """;
 
-	public IReadOnlyList<AITool> GetTools() =>
+    public IReadOnlyList<AITool> GetTools() =>
 	[
 		AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
 		AIFunctionFactory.Create(orderTools.GetOrderDetails),
-		AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync),
-		new ApprovalRequiredAIFunction(AIFunctionFactory.Create(refundTools.RequestFullOrderRefundAsync)),
-		new ApprovalRequiredAIFunction(AIFunctionFactory.Create(refundTools.RequestOrderItemRefundAsync))
-
+		AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync)
 	];
 }

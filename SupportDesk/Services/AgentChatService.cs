@@ -1,5 +1,4 @@
 ﻿using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
 using SupportDesk.Agents;
 using SupportDesk.Http;
 using SupportDesk.Sessions;
@@ -41,29 +40,7 @@ namespace SupportDesk.Services
 			await sessions.SaveAsync(
 				key, await agent.SerializeSessionAsync(session, cancellationToken: ct), ct);
 
-			if (IsApprovalToolInvoked(response))
-			{
-				var toolApprovalRequests = response.Messages
-										.SelectMany(m => m.Contents)
-										.OfType<ToolApprovalRequestContent>()
-										.ToList();
-
-				var functionCall = (FunctionCallContent)toolApprovalRequests.FirstOrDefault().ToolCall;
-
-				string responseMessage
-					 = $"This request cannot be process as tool {functionCall.Name} requires an approval.";
-
-				return new ChatResult(agentName, conversationId, responseMessage);
-			}
 			return new ChatResult(agentName, conversationId, response.Text);
 		}
-
-
-
-		private bool IsApprovalToolInvoked(AgentResponse response) =>
-								response.Messages
-										.SelectMany(m => m.Contents)
-										.OfType<ToolApprovalRequestContent>()
-										.Any();
 	}
 }
