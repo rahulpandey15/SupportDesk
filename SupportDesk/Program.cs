@@ -1,21 +1,42 @@
+using Azure.AI.Projects;
+using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
+using SupportDesk.Agents;
+using SupportDesk.Configuration;
 using SupportDesk.Data;
 using SupportDesk.Data.Store;
 using SupportDesk.Endpoints;
 using SupportDesk.Http;
+using SupportDesk.Services;
 using SupportDesk.Sessions;
 using SupportDesk.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services
+    .AddOptions<FoundryOptions>()
+    .Bind(builder.Configuration.GetSection(FoundryOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 builder.Services.AddDbContext<SupportDeskDbContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddHttpContextAccessor();  
+builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<FoundryOptions>>().Value;
+    return new AIProjectClient(new Uri(options.ProjectEndpoint), new DefaultAzureCredential());
+});
+
+// Agent infrastructure
+builder.Services.AddSingleton<IAgentBuilder, FoundryAgentBuilder>();
+builder.Services.AddAgentDefinitions(typeof(Program).Assembly); // discovers every IAgentDefinition
+builder.Services.AddScoped<IAgentRegistry, AgentRegistry>();
+builder.Services.AddScoped<AgentChatService>();
 
 builder.Services.AddScoped<OrderTools>();
 builder.Services.AddScoped<IOrderStore,OrderStore>();

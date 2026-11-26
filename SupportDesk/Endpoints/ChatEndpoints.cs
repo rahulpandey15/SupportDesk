@@ -2,107 +2,48 @@
 using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using SupportDesk.Agents;
 using SupportDesk.Http;
+using SupportDesk.Services;
 using SupportDesk.Sessions;
 using SupportDesk.Tools;
 
 namespace SupportDesk.Endpoints
 {
-	public sealed record ChatRequest(string message, string? conversationId = null);
-	public sealed record ChatResult<T>(T data, string conversationId);
+    public sealed record ChatRequest(string message, string? conversationId = null);
+    public sealed record ChatResult<T>(T data, string conversationId);
 
-	public static class ChatEndpoints
-	{
+    public static class ChatEndpoints
+    {
 
-		public static IEndpointRouteBuilder MapChatEndpoints(
-			this IEndpointRouteBuilder app)
-		{
-			var group = app.MapGroup("/api/agents");
-
-			group.MapPost("/chat", async Task<IResult> (
-				ChatRequest request,
-				HttpContext httpContext,
-				ICustomerContext customer,
-				ISessionStore sessionStore,
-				CancellationToken ct
-				) =>
-			{
-			var orderTools = httpContext.RequestServices.GetRequiredService<OrderTools>();
-			var shipmentTools = httpContext.RequestServices.GetRequiredService<ShipmentTools>();
+        public static IEndpointRouteBuilder MapChatEndpoints(
+            this IEndpointRouteBuilder app)
+        {
+            var group = app.MapGroup("/api/agents");
 
 
-			var endpoint = Environment.GetEnvironmentVariable("FOUNDRY_ENDPOINT");
-			var deploymentName = "gpt-5.4-mini";
+            group.MapGet("/", (IAgentRegistry registry) => Results.Ok(registry.List()));
 
-			var agentInstructions = """
-                      You are a friendly customer support agent for an online store.
+            group.MapPost("/{agentName}/chat", async Task<IResult> (
+           string agentName,
+           ChatRequest request,
+           AgentChatService chat,
+           CancellationToken ct) =>
+            {
+                if (string.IsNullOrWhiteSpace(request.message))
+                {
+                    return Results.BadRequest(new { error = "Message is required." });
+                }
 
-                      Rules:
-                      - Answer questions about the signed-in customer's orders using ONLY the tools provided.
-                      - Never guess order details. If the tools return nothing, say you could not find it.
-                      - You can only see the current customer's orders. Never discuss other customers.
-                      - You cannot issue refunds. If asked, explain the policy briefly and offer to hand off to a human.
-                      - Keep answers short, polite and specific (order numbers, dates, statuses).
-                      """;
+                var result = await chat.ChatAsync(agentName, request.conversationId, request.message, ct);
 
-			AIAgent agent = new AIProjectClient(
-							new Uri(endpoint),
-							new AzureCliCredential())
-				.AsAIAgent(
-					model: deploymentName,
-					instructions: agentInstructions,
+                return result is null
+                    ? Results.NotFound(new { error = $"Unknown agent '{agentName}'." })
+                    : Results.Ok(result);
+            });
 
-					tools: [
-						  AIFunctionFactory.Create(orderTools.GetOrderDetails),
-							  AIFunctionFactory.Create(orderTools.GetRecentOrdersAsync),
-							  new ApprovalRequiredAIFunction(
-								  AIFunctionFactory.Create(shipmentTools.GetShipmentDetailsAsync))
-						],
-					name: "HelloAgent");
+            return app;
+        }
 
-
-			var conversationId =
-					string.IsNullOrWhiteSpace(request.conversationId)
-									? Guid.NewGuid().ToString("N")
-									: request.conversationId;
-
-			var key = new SessionKey(customer.GetCustomerId(), conversationId);
-			var saved = await sessionStore.GetAsync(key, ct);
-
-			AgentSession agentSession = saved is { } state
-				? await agent.DeserializeSessionAsync(state, cancellationToken: ct)
-				: await agent.CreateSessionAsync(ct);
-
-			var response = await agent.RunAsync(
-							request.message,
-							agentSession,
-							cancellationToken: ct);
-
-
-			var toolApprovalRequests = response.Messages
-								.SelectMany(x => x.Contents)
-								.OfType<ToolApprovalRequestContent>()
-								.ToList();
-
-			if (toolApprovalRequests.Any())
-			{
-				var approvalRequest = toolApprovalRequests.First();
-				var toolName = (FunctionCallContent)approvalRequest.ToolCall;
-
-				return Results.Ok(new ChatResult<string>(
-					$"The agent is requesting approval to use the tool '{toolName.Name}'. Please approve or deny this request.",
-					conversationId));
-			};
-
-
-			var sessionState = await agent.SerializeSessionAsync(agentSession, cancellationToken: ct);
-			await sessionStore.SaveAsync(key, sessionState, ct);
-
-			return Results.Ok(new ChatResult<string>(response.Text, conversationId));
-		});
-
-			return app;
-		}
-
-}
+    }
 }
