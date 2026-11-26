@@ -438,7 +438,7 @@ Add another agent by implementing `IAgentDefinition` and registering it through 
 
 Each branch represents a step in the YouTube series. `master` is the published baseline/merge branch, and session branches represent episodes that are merged only after publication.
 
-| Branch | Series stage | Branch activity | YouTube video |
+| Branch | Series stage | Video Title | YouTube video |
 |---|---|---:|---|
 | `master` | Session 1 / baseline | Microsoft Agent Framework in C#: AI Agents Without Python | https://youtu.be/XiBFsnrX_AU |
 | `Session2` | Agent Session 2 | Build Your First AI Agent in C# with Microsoft Agent Framework (.NET 10)h | https://youtu.be/wc05lFtshhc |
