@@ -597,28 +597,8 @@ dotnet build
 
 Run both projects and test the API through Scalar or the chatbot UI.
 
-## Security notes
 
-- Do not expose a real SQL `sa` password in source control.
-- Do not commit Azure endpoint or deployment secrets.
-- Replace development credentials and the demo customer-header model before production use.
-- Keep customer authorization server-controlled in a real application instead of accepting an arbitrary `x-customer-id` header.
-- Use Azure Managed Identity or another workload credential strategy in hosted environments rather than Azure CLI credentials.
-- Enable TLS, authentication, and authorization for all public API routes.
-- Consider adding rate limits and telemetry for agent calls.
-
-## Contributing and episode workflow
-
-1. Select the appropriate session branch or create the next numbered branch.
-2. Keep implementation changes aligned with the episode topic.
-3. Run migrations, seed data, build, and manual API/UI checks.
-4. Push the session branch.
-5. Publish the YouTube video.
-6. Merge the tested session branch into `master`.
-7. Add the final YouTube URL to the branch table above.
-
-
-Reach out to me via any of the following channels
+## Reach out to me via any of the following channels
 1. Discord : [DevBeyondCode](https://discord.com/invite/Szs9ypCdRj)
 2. Contact Me : [www.devbeyondcode.com/](https://www.devbeyondcode.com/contact/)
 3. LinkedIn : [www.linkedin.com/](https://www.linkedin.com/in/rahulpandey15/)
