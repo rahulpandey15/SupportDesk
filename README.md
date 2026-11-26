@@ -619,7 +619,7 @@ Run both projects and test the API through Scalar or the chatbot UI.
 
 
 Reach out to me via any of the following channels
-1. Discord : https://discord.com/invite/Szs9ypCdRj
+1. Discord : [DevBeyondCode](https://discord.com/invite/Szs9ypCdRj)
 2. Contact Me : [www.devbeyondcode.com/](https://www.devbeyondcode.com/contact/)
-3. LinkedIn : https://www.linkedin.com/in/rahulpandey15/
+3. LinkedIn : [www.linkedin.com/](https://www.linkedin.com/in/rahulpandey15/)
 
