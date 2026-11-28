@@ -444,7 +444,7 @@ Each branch represents a step in the YouTube series. `master` is the published b
 | `Session2` | Agent Session 2 | Build Your First AI Agent in C# with Microsoft Agent Framework (.NET 10)h | https://youtu.be/wc05lFtshhc |
 | `Session3` | Agent Session 3 | AI Agent Tools in C#: Function Calling with Microsoft Agent Framework (.NET 10) | https://youtu.be/eDYZTiTiaBw |
 | `Session4` | Agent Session 4 | Build a C# AI Agent That Actually Remembers the Conversation | https://youtu.be/CoRMOos1bpg |
-| `Session5` | Agent Session 5 | Blazor Integration | In Progress |
+| `Session5` | Agent Session 5 | Blazor Integration |https://youtu.be/mxwmF6m5bOo?si=vmZFAtTHpqJ5H1M9 |
 
 Because `Session5` is the branch with the highest numeric suffix currently available, it contains the newest session content. Remote branches may include newer sessions later.
 
